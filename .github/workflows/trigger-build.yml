@@ -16,9 +16,7 @@ jobs:
 
       - name: Create package
         run: |
-          echo "Building PicoClaw RPI3B+ firmware package..."
           tar -czvf picoclaw-rpi3b-firmware.tar.gz config layer build.sh
-          ls -la
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -26,9 +24,9 @@ jobs:
           name: firmware-package
           path: picoclaw-rpi3b-firmware.tar.gz
 
-      - name: Create Release
+      - name: Create Release and Upload Asset
         run: |
-          RESPONSE=$(curl -s -X POST https://api.github.com/repos/${{ github.repository }}/releases \
+          RELEASE_RESP=$(curl -s -X POST https://api.github.com/repos/${{ github.repository }}/releases \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -d '{
@@ -37,12 +35,9 @@ jobs:
               "draft": false,
               "prerelease": false
             }')
-          echo "upload_url=$(echo $RESPONSE | jq -r '.upload_url')" >> $GITHUB_OUTPUT
-
-      - name: Upload Release Asset
-        run: |
-          UPLOAD_URL=$(cat $GITHUB_OUTPUT | grep upload_url | cut -d= -f2)
-          curl -s -X POST "${UPLOAD_URL}" \
+          
+          UPLOAD_URL=$(echo "$RELEASE_RESP" | jq -r '.upload_url')
+          curl -s -X POST "${UPLOAD_URL}?name=picoclaw-rpi3b-firmware.tar.gz" \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/gzip" \
             --data-binary @picoclaw-rpi3b-firmware.tar.gz
