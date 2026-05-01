@@ -8,36 +8,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Create package
         run: |
-          tar -czvf picoclaw-rpi3b-firmware.tar.gz config layer build.sh
+          tar -czvf picoclaw-rpi3b-firmware.tar.gz config layer build.sh README.md
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-package
+          name: picoclaw-rpi3b-firmware
           path: picoclaw-rpi3b-firmware.tar.gz
-
-      - name: Create Release and Upload Asset
-        run: |
-          RELEASE_RESP=$(curl -s -X POST https://api.github.com/repos/${{ github.repository }}/releases \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -d '{
-              "tag_name": "v1.0.0",
-              "name": "PicoClaw RPI3B+ Firmware v1.0.0",
-              "draft": false,
-              "prerelease": false
-            }')
-          
-          UPLOAD_URL=$(echo "$RELEASE_RESP" | jq -r '.upload_url')
-          curl -s -X POST "${UPLOAD_URL}?name=picoclaw-rpi3b-firmware.tar.gz" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/gzip" \
-            --data-binary @picoclaw-rpi3b-firmware.tar.gz
+          retention-days: 30
