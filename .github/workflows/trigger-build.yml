@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,21 +27,22 @@ jobs:
           path: picoclaw-rpi3b-firmware.tar.gz
 
       - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v1.0.0
-          release_name: PicoClaw RPI3B+ Firmware v1.0.0
-          draft: false
-          prerelease: false
+        run: |
+          RESPONSE=$(curl -s -X POST https://api.github.com/repos/${{ github.repository }}/releases \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{
+              "tag_name": "v1.0.0",
+              "name": "PicoClaw RPI3B+ Firmware v1.0.0",
+              "draft": false,
+              "prerelease": false
+            }')
+          echo "upload_url=$(echo $RESPONSE | jq -r '.upload_url')" >> $GITHUB_OUTPUT
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./picoclaw-rpi3b-firmware.tar.gz
-          asset_name: picoclaw-rpi3b-firmware.tar.gz
-          asset_content_type: application/gzip
+        run: |
+          UPLOAD_URL=$(cat $GITHUB_OUTPUT | grep upload_url | cut -d= -f2)
+          curl -s -X POST "${UPLOAD_URL}" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/gzip" \
+            --data-binary @picoclaw-rpi3b-firmware.tar.gz
