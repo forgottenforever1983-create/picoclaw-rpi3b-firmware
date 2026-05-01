@@ -1,0 +1,50 @@
+╔══════════════════════════════════════════════════════════════════╗
+║        PICOCLAW RPI3B+ FIRMWARE - QUICK REFERENCE                 ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📦 WHAT'S INCLUDED
+─────────────────
+• PicoClaw AI Assistant (pre-installed)
+• 5 LLM providers (OpenRouter, Anthropic, OpenAI, DeepSeek, Google)
+• Custom skills: profile, memory, kanban, cron, webhook
+• Custom agents: orchestrator, security-reviewer, docs-writer
+
+🌐 NETWORK
+──────────
+• WiFi: Athena-Da-God1 / 12345678
+• IP: 192.168.1.100 (static)
+• SSH: ssh pi@192.168.1.100
+
+🔑 CREDENTIALS
+──────────────
+• SSH: pi / raspberry
+• API Key: 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
+
+⚡ QUICK START
+─────────────
+1. Flash .img to SD card
+2. Boot Pi 3B+
+3. Wait 2-3 min for first boot
+4. SSH: ssh pi@192.168.1.100
+5. Run: picoclaw
+
+📝 COMMANDS
+───────────
+• picoclaw              → Interactive mode
+• picoclaw agent -m "prompt"  → Single query
+• picoclaw --help      → Help
+• picoclaw-start       → Quick start wizard
+
+🛠️ TROUBLESHOOTING
+───────────────────
+• No WiFi? → sudo wpa_cli reconfigure
+• No SSH? → Check IP with: hostname -I
+• API fail? → Edit: /etc/picoclaw/config.json
+
+💾 LOCATIONS
+───────────
+• Config: /etc/picoclaw/config.json
+• Workspace: /~/picoclaw-workspace
+• Network: /etc/picoclaw/network-info.txt
+
+═══════════════════════════════════════════════════════════════════

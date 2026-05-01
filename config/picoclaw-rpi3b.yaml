@@ -1,0 +1,9 @@
+device: rpi3b+
+locale: en_US.UTF-8
+timezone: America/New_York
+hostname: picoclaw-rpi3b
+layers:
+  - base: bookworm-minbase
+  - custom-picoclaw
+  - userland
+enable_ssh: true

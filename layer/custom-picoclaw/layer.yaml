@@ -1,0 +1,21 @@
+name: custom-picoclaw
+description: PicoClaw AI assistant with pre-configured providers, skills, and network
+version: 1.0.0
+metadata:
+  maintainer: "Kevin"
+  target:
+    - device: rpi3b+
+      arch: arm64
+
+packages:
+  - golang-go
+  - git
+  - curl
+  - wget
+  - wpasupplicant
+  - dhcpcd5
+  - systemd
+  - openssh-server
+  - network-manager
+
+variant: minbase

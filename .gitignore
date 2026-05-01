@@ -1,0 +1,47 @@
+# Build artifacts
+*.img
+*.img.gz
+*.img.xz
+
+# rpi-image-gen work directory
+rpi-image-gen/
+work/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# Secrets - NEVER commit
+*.env
+*.pem
+*.key
+secrets/
+credentials/
+api-keys/
+
+# Build system
+*.o
+*.a
+*.so
+node_modules/
+
+# Custom files to exclude
+*.mp4
+*.mov
+*.zip

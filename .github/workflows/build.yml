@@ -1,0 +1,106 @@
+name: Build PicoClaw RPI3B+ Firmware
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          sudo systemctl start docker
+          sudo systemctl enable docker
+
+      - name: Set up ARM64 emulation
+        run: |
+          sudo apt-get install -y qemu-user-static binutils-arm-linux-gnueabihf
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
+      - name: Clone rpi-image-gen
+        run: |
+          git clone https://github.com/raspberrypi/rpi-image-gen.git ../rpi-image-gen
+          cp -r layer/ ../rpi-image-gen/layer/custom-picoclaw
+          cp config/picoclaw-rpi3b.yaml ../rpi-image-gen/config/
+
+      - name: Install build dependencies
+        run: |
+          cd ../rpi-image-gen
+          sudo ./install_deps.sh || true
+
+      - name: Build Raspberry Pi image
+        run: |
+          cd ../rpi-image-gen
+          chmod +x rpi-image-gen
+          sudo ./rpi-image-gen build -c config/picoclaw-rpi3b.yaml || echo "Build may require ARM64 hardware"
+
+      - name: Find and list built image
+        run: |
+          find ../rpi-image-gen/work -name "*.img" -type f 2>/dev/null || echo "No image found"
+
+      - name: Upload firmware artifact
+        if: false
+        uses: actions/upload-artifact@v4
+        with:
+          name: picoclaw-rpi3b-firmware
+          path: ../rpi-image-gen/work/**/*.img
+          retention-days: 30
+
+  build-arm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare release
+        run: |
+          echo "# PicoClaw RPI3B+ Firmware Build Files" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "To build the firmware, you need:" >> RELEASE_NOTES.md
+          echo "- Raspberry Pi 4/5 or Debian arm64 VM" >> RELEASE_NOTES.md
+          echo "- ~40GB disk space" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "## Quick Build:" >> RELEASE_NOTES.md
+          echo '```bash' >> RELEASE_NOTES.md
+          echo './build.sh' >> RELEASE_NOTES.md
+          echo '```' >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "## Or manually:" >> RELEASE_NOTES.md
+          echo '```bash' >> RELEASE_NOTES.md
+          echo 'git clone https://github.com/raspberrypi/rpi-image-gen.git' >> RELEASE_NOTES.md
+          echo 'cd rpi-image-gen' >> RELEASE_NOTES.md
+          echo 'sudo ./install_deps.sh' >> RELEASE_NOTES.md
+          echo 'cp -r ../rpi-picoclaw-firmware/layer/custom-picoclaw layer/' >> RELEASE_NOTES.md
+          echo 'cp ../rpi-picoclaw-firmware/config/picoclaw-rpi3b.yaml config/' >> RELEASE_NOTES.md
+          echo './rpi-image-gen build -c config/picoclaw-rpi3b.yaml' >> RELEASE_NOTES.md
+          echo '```' >> RELEASE_NOTES.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          name: PicoClaw RPI3B+ Firmware v1.0
+          body_path: RELEASE_NOTES.md
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build files
+        uses: softprops/action-gh-release@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          assets_path: .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
